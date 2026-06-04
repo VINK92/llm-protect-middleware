@@ -1,0 +1,17 @@
+node_modules
+dist
+coverage
+.git
+.github
+.vscode
+.idea
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+docker-data
+models/*.onnx
+README.md
+PRD.md
+docs

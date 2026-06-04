@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json.schemastore.org/nest-cli",
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "apps/gateway/src",
+  "monorepo": true,
+  "root": "apps/gateway",
+  "compilerOptions": {
+    "deleteOutDir": true,
+    "webpack": false,
+    "tsConfigPath": "apps/gateway/tsconfig.app.json"
+  },
+  "projects": {
+    "gateway": {
+      "type": "application",
+      "root": "apps/gateway",
+      "entryFile": "main",
+      "sourceRoot": "apps/gateway/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/gateway/tsconfig.app.json"
+      }
+    },
+    "shared": {
+      "type": "library",
+      "root": "libs/shared",
+      "entryFile": "index",
+      "sourceRoot": "libs/shared/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/shared/tsconfig.lib.json"
+      }
+    },
+    "detection-engine": {
+      "type": "library",
+      "root": "libs/detection-engine",
+      "entryFile": "index",
+      "sourceRoot": "libs/detection-engine/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/detection-engine/tsconfig.lib.json"
+      }
+    },
+    "semantic-cache": {
+      "type": "library",
+      "root": "libs/semantic-cache",
+      "entryFile": "index",
+      "sourceRoot": "libs/semantic-cache/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/semantic-cache/tsconfig.lib.json"
+      }
+    },
+    "ai-proxy": {
+      "type": "library",
+      "root": "libs/ai-proxy",
+      "entryFile": "index",
+      "sourceRoot": "libs/ai-proxy/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/ai-proxy/tsconfig.lib.json"
+      }
+    },
+    "logging": {
+      "type": "library",
+      "root": "libs/logging",
+      "entryFile": "index",
+      "sourceRoot": "libs/logging/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/logging/tsconfig.lib.json"
+      }
+    },
+    "metrics": {
+      "type": "library",
+      "root": "libs/metrics",
+      "entryFile": "index",
+      "sourceRoot": "libs/metrics/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/metrics/tsconfig.lib.json"
+      }
+    }
+  }
+}

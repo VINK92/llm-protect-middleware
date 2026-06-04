@@ -1,0 +1,104 @@
+name: llm-protect
+
+services:
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: llm-protect-gateway
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      LOG_LEVEL: info
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      AI_BACKEND: ${AI_BACKEND:-mock}
+      OLLAMA_BASE_URL: http://ollama:11434
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.2}
+      EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER:-mock}
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - llm-protect-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/v1/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  redis:
+    image: redis/redis-stack:7.4.0-v0
+    container_name: llm-protect-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+      - "8001:8001"   # RedisInsight UI
+    volumes:
+      - redis-data:/data
+    networks:
+      - llm-protect-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: llm-protect-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: llm_protect
+      POSTGRES_USER: llm_protect
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-llm_protect_dev}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - llm-protect-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U llm_protect -d llm_protect"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # Optional: enable with `docker compose --profile ollama up`
+  ollama:
+    image: ollama/ollama:latest
+    container_name: llm-protect-ollama
+    profiles: ["ollama"]
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    networks:
+      - llm-protect-net
+
+  # Optional monitoring
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: llm-protect-prometheus
+    profiles: ["monitoring"]
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./infra/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    networks:
+      - llm-protect-net
+
+volumes:
+  redis-data:
+  postgres-data:
+  ollama-data:
+
+networks:
+  llm-protect-net:
+    driver: bridge
