@@ -1,7 +1,9 @@
 import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 import { MetricsModule } from '@app/metrics';
 import { SemanticCacheModule } from '@app/semantic-cache';
+import { AppConfig } from '@app/shared';
 
 import { RiskScoreService } from './risk-score/risk-score.service';
 import { ContentLengthMiddleware } from './stage-1a-content-length/content-length.middleware';
@@ -10,6 +12,7 @@ import { ExactCacheInterceptor } from './stage-2-exact-cache/exact-cache.interce
 import { EntropyInterceptor } from './stage-3-entropy/entropy.interceptor';
 import { TokenLimitInterceptor } from './stage-4-token-limit/token-limit.interceptor';
 import { MockEmbeddingProvider } from './stage-5-embedding/embedding.mock';
+import { OnnxEmbeddingProvider } from './stage-5-embedding/embedding.onnx';
 import { EMBEDDING_PROVIDER, EmbeddingService } from './stage-5-embedding/embedding.service';
 import { SemanticCacheInterceptor } from './stage-5-embedding/semantic-cache.interceptor';
 
@@ -39,7 +42,14 @@ import { SemanticCacheInterceptor } from './stage-5-embedding/semantic-cache.int
     EntropyInterceptor,
     TokenLimitInterceptor,
     MockEmbeddingProvider,
-    { provide: EMBEDDING_PROVIDER, useExisting: MockEmbeddingProvider },
+    OnnxEmbeddingProvider,
+    {
+      provide: EMBEDDING_PROVIDER,
+      useFactory: (cfg: ConfigService<AppConfig, true>, mock: MockEmbeddingProvider, onnx: OnnxEmbeddingProvider) => {
+        return cfg.get('EMBEDDING_PROVIDER', { infer: true }) === 'onnx' ? onnx : mock;
+      },
+      inject: [ConfigService, MockEmbeddingProvider, OnnxEmbeddingProvider],
+    },
     EmbeddingService,
     SemanticCacheInterceptor,
   ],
